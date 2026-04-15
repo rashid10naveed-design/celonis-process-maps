@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Celonis Process Designer — Banking Onboarding L2</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#fff;--bg-panel:#f7f8fa;--bg-hover:#eef0f4;
+  --border:#dfe1e6;--border-light:#ebecf0;
+  --text:#2c3e50;--text-sec:#5e6c84;--text-muted:#97a0af;
+  --blue:#1b6ac9;--blue-light:#e8f0fe;--green:#36b37e;
+  --node-border:#b3bac5;--node-bg:#fff;
+  --conn:#8993a4;--lane-hdr:#f0f1f4;--link:#0052cc;
+  --agent-accent:#7c3aed;--agent-bg:#f5f0ff;--agent-border:#c4b5fd;
+  --font:'Source Sans 3',-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;height:100vh;font-size:13px}
+
+.topnav{height:34px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;font-size:13px}
+.topnav-item{padding:7px 10px;color:var(--text-sec);cursor:pointer;position:relative;font-weight:500;text-decoration:none}
+.topnav-item:hover{color:var(--text)}
+.topnav-item.active{color:var(--blue);font-weight:600}
+.topnav-item.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--blue)}
+.topnav-right{margin-left:auto}
+.topnav-btn{padding:3px 10px;font-size:11px;font-family:var(--font);border:1px solid var(--border);background:var(--bg);color:var(--text-sec);border-radius:3px;cursor:pointer;font-weight:500}
+
+.breadcrumb-bar{height:22px;background:var(--bg-panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;font-size:11px;color:var(--text-muted)}
+.breadcrumb-bar a{color:var(--link);text-decoration:none}
+.breadcrumb-bar .sep{margin:0 4px}
+
+.toolbar2{height:30px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 8px;gap:2px}
+.tb-btn{height:24px;padding:0 7px;font-size:10px;font-family:var(--font);font-weight:500;border:1px solid var(--border);background:var(--bg);color:var(--text-sec);cursor:pointer;border-radius:3px}
+.tb-btn:hover{background:var(--bg-hover)}
+.tb-btn.active{background:var(--blue-light);color:var(--blue);border-color:var(--blue)}
+.tb-sep{width:1px;height:18px;background:var(--border);margin:0 5px}
+
+.type-bar{height:30px;background:var(--bg-panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:8px}
+.type-label{font-size:11px;color:var(--text-muted);font-weight:500}
+.type-input{border:1px solid var(--border);border-radius:3px;padding:2px 8px;font-size:11px;font-family:var(--font);width:180px;color:var(--text)}
+
+.main{display:flex;height:calc(100vh - 116px)}
+
+.left-panel{width:190px;background:var(--bg);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;font-size:11px}
+.tree-node{display:flex;align-items:center;gap:4px;padding:3px 8px 3px 10px;cursor:pointer;color:var(--text-sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tree-node:hover{background:var(--bg-hover)}
+.tree-node.selected{background:var(--blue-light);color:var(--blue);font-weight:600}
+.tree-node .caret{width:12px;font-size:7px;color:var(--text-muted);flex-shrink:0;text-align:center}
+.tree-node .icon{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.tree-node .icon.blue{background:var(--blue)}
+.tree-node .icon.green{background:var(--green)}
+.tree-node .icon.purple{background:var(--agent-accent)}
+.i1{padding-left:20px}.i2{padding-left:34px}.i3{padding-left:48px}
+
+.canvas{flex:1;background:var(--bg);position:relative;overflow:auto}
+.canvas-inner{position:relative;padding:14px}
+
+.pool{position:relative;border:1.5px solid var(--node-border)}
+.lane{display:flex;border-bottom:1px solid var(--node-border)}
+.lane:last-child{border-bottom:none}
+.lane-label{width:28px;flex-shrink:0;background:var(--lane-hdr);border-right:1px solid var(--node-border);display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;font-weight:700;color:var(--text);padding:6px 2px;letter-spacing:.3px}
+.lane-label.agent{background:var(--agent-bg);color:var(--agent-accent)}
+.lane-body{flex:1;position:relative;display:flex;align-items:flex-start;padding:10px 10px;gap:10px;flex-wrap:nowrap}
+.lane-row{display:flex;align-items:center;gap:10px;flex-shrink:0}
+
+.n{background:var(--node-bg);border:1px solid var(--node-border);border-radius:5px;padding:4px 6px;width:105px;min-height:38px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;flex-shrink:0}
+.n:hover{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.n .label{font-size:9px;font-weight:500;color:var(--text);line-height:1.2}
+
+.n.agent{border-color:var(--agent-border);background:var(--agent-bg)}
+.n.agent:hover{border-color:var(--agent-accent);box-shadow:0 0 0 1px var(--agent-accent)}
+.n.agent .label{color:var(--agent-accent)}
+.n.agent-trigger{border-color:var(--agent-accent);border-width:2px;background:var(--agent-bg)}
+.n.agent-trigger .label{color:var(--agent-accent);font-weight:700}
+
+.evt{width:26px;height:26px;border-radius:50%;border:2px solid var(--node-border);background:var(--node-bg);flex-shrink:0;position:relative;z-index:2;cursor:pointer}
+.evt .inner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;border-radius:50%;background:var(--text)}
+.evt-end{width:26px;height:26px;border-radius:50%;border:3px solid var(--node-border);background:var(--node-bg);flex-shrink:0;position:relative;z-index:2}
+
+.sp{flex-shrink:0}
+
+#connSvg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+#connSvg line,#connSvg polyline{stroke:var(--conn);stroke-width:1.1;fill:none}
+#connSvg .arrow-head{fill:var(--conn);stroke:none}
+#connSvg .dashed{stroke-dasharray:5,3}
+#connSvg .agent-conn{stroke:var(--agent-accent);stroke-width:1.3}
+#connSvg .agent-head{fill:var(--agent-accent);stroke:none}
+
+.right-panel{width:240px;background:var(--bg);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;font-size:11px}
+.rp-section{border-bottom:1px solid var(--border-light)}
+.rp-section-header{padding:6px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.rp-section-header:hover{background:var(--bg-hover)}
+.rp-section-title{font-size:11px;font-weight:600;color:var(--text)}
+.rp-section-caret{font-size:9px;color:var(--text-muted)}
+.rp-section-body{padding:3px 10px 8px}
+.rp-field{margin-bottom:5px}
+.rp-field-label{font-size:10px;color:var(--text-muted);margin-bottom:1px}
+.rp-input{width:100%;border:1px solid var(--border);border-radius:3px;padding:3px 7px;font-size:11px;font-family:var(--font);color:var(--text)}
+.rp-link{color:var(--link);text-decoration:none;font-size:11px}
+.rp-reviewer{display:flex;align-items:center;gap:5px;font-size:11px;margin-top:3px}
+.rp-reviewer .avatar{width:16px;height:16px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:700}
+.rp-hint{background:#fffbe6;border:1px solid #ffe58f;border-radius:3px;padding:5px 7px;font-size:10px;color:#ad6800;margin-top:3px;line-height:1.3}
+.rp-obj{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px}
+.rp-obj .dot{width:8px;height:8px;border-radius:2px}
+
+.bottom-bar{position:fixed;bottom:0;right:0;height:24px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;padding:0 8px;gap:5px;width:240px;border-left:1px solid var(--border)}
+.zoom-btn{width:20px;height:20px;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text-muted);font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.zoom-label{font-size:10px;color:var(--text-muted)}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg-panel)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <a class="topnav-item" href="#">Customers</a><a class="topnav-item" href="#">Strategy</a><a class="topnav-item" href="#">KPIs</a>
+  <a class="topnav-item active" href="#">Processes</a><a class="topnav-item" href="#">Organization</a><a class="topnav-item" href="#">Products</a>
+  <a class="topnav-item" href="#">Business Objects</a><a class="topnav-item" href="#">Systems</a><a class="topnav-item" href="#">Risks</a>
+  <a class="topnav-item" href="#">Task Board</a>
+  <div class="topnav-right"><button class="topnav-btn">Exit Edit Mode</button></div>
+</div>
+<div class="breadcrumb-bar">
+  <a href="#">Graphic</a><span class="sep">/</span><a href="#">Process House of Company</a><span class="sep">/</span><a href="#">Core Processes</a><span class="sep">/</span><span>Banking Onboarding L2</span>
+</div>
+<div class="toolbar2">
+  <button class="tb-btn">New</button><button class="tb-btn active">Graphic ▾</button><button class="tb-btn">⟳</button>
+  <div class="tb-sep"></div><button class="tb-btn">Select</button><button class="tb-btn">Edit</button>
+  <div class="tb-sep"></div><button class="tb-btn">📋</button><button class="tb-btn">🔗</button>
+  <div class="tb-sep"></div><button class="tb-btn">Request</button><button class="tb-btn">Manual ▾</button><button class="tb-btn">Services ▾</button>
+  <div class="tb-sep"></div><span style="font-size:10px;color:var(--text-sec)">Version: 2.14, In process ▾</span>
+  <div class="tb-sep"></div><button class="tb-btn">Permissions ▾</button><button class="tb-btn">AI ▾</button>
+  <div style="margin-left:auto;display:flex;gap:3px"><button class="tb-btn">Translate</button><button class="tb-btn">Get relation proposals (AI)</button></div>
+</div>
+<div class="type-bar">
+  <span class="type-label">Type</span><span style="font-size:11px;font-weight:600">Sub process</span>
+  <input class="type-input" value="Banking Onboarding L2"/>
+</div>
+
+<div class="main">
+
+<div class="left-panel">
+  <div style="padding:4px 0">
+    <div class="tree-node"><span class="caret">▾</span> Process House of Company</div>
+    <div class="tree-node i1"><span class="caret">▸</span> Management Processes</div>
+    <div class="tree-node i1"><span class="caret">▾</span> Core Processes</div>
+    <div class="tree-node i2"><span class="caret">▸</span> Lending</div>
+    <div class="tree-node i2 selected"><span class="caret">▾</span> Customer Onboarding</div>
+    <div class="tree-node i3"><span class="icon blue"></span> Banking Onboarding L2</div>
+    <div class="tree-node i3"><span class="icon blue"></span> Initial KYC Sub-Process</div>
+    <div class="tree-node i3"><span class="icon purple"></span> EDD AI Agent</div>
+    <div class="tree-node i2"><span class="caret">▸</span> Payments</div>
+    <div class="tree-node i2"><span class="caret">▸</span> Collections</div>
+    <div class="tree-node i1"><span class="caret">▸</span> Support Processes</div>
+    <div class="tree-node i1"><span class="caret">▸</span> End to End Processes</div>
+    <div class="tree-node i1"><span class="caret">▸</span> Reference Models</div>
+    <div class="tree-node"><span class="caret">▸</span> Mined models</div>
+    <div class="tree-node"><span class="caret">▸</span> Banking</div>
+    <div class="tree-node"><span class="caret">▸</span> Celosphere</div>
+    <div class="tree-node"><span class="icon green"></span> View</div>
+  </div>
+</div>
+
+<div class="canvas">
+  <div class="canvas-inner" style="min-width:2200px;min-height:900px;">
+    <div class="pool" id="pool">
+
+      <!-- LANE 1: Customer -->
+      <div class="lane" style="min-height:80px">
+        <div class="lane-label">Customer</div>
+        <div class="lane-body" style="align-items:center">
+          <div class="evt" data-id="c-start"><div class="inner"></div></div>
+          <div class="n" data-id="c-register-lead"><span class="label">Register Lead</span></div>
+          <div class="n" data-id="c-app-submission"><span class="label">Customer Application Submission</span></div>
+          <div class="n" data-id="c-verify-identity"><span class="label">Verify Customer Identity</span></div>
+          <div class="n" data-id="c-accept"><span class="label">Accept Customer</span></div>
+          <div class="n" data-id="c-profile-updated"><span class="label">Customer Profile Updated</span></div>
+          <div class="n" data-id="c-one-year"><span class="label">Customer For One Year</span></div>
+        </div>
+      </div>
+
+      <!-- LANE 2: Initial KYC -->
+      <div class="lane" style="min-height:80px">
+        <div class="lane-label">Initial KYC</div>
+        <div class="lane-body" style="align-items:center">
+          <div class="sp" style="width:110px"></div>
+          <div class="n" data-id="k-create-case"><span class="label">Create Initial KYC Case</span></div>
+          <div class="n" data-id="k-assign-case"><span class="label">Assign Initial KYC Case</span></div>
+          <div class="n" data-id="k-due-diligence"><span class="label">Conduct Due Diligence Initial</span></div>
+          <div class="n" data-id="k-doc-check"><span class="label">Perform Document Check Initial</span></div>
+          <div class="n" data-id="k-risk-assess"><span class="label">Perform Risk Assessment Initial</span></div>
+          <div class="n" data-id="k-interview"><span class="label">Conduct Customer Interview</span></div>
+          <div class="n" data-id="k-qa-review"><span class="label">QA Review of Initial KYC Case</span></div>
+          <div class="n" data-id="k-close-case"><span class="label">Close Initial KYC Case</span></div>
+        </div>
+      </div>
+
+      <!-- LANE 3: EDD AI Agent -->
+      <div class="lane" style="min-height:80px">
+        <div class="lane-label agent">EDD AI Agent</div>
+        <div class="lane-body" style="align-items:center">
+          <div class="sp" style="width:118px"></div>
+          <div class="n agent-trigger" data-id="e-trigger"><span class="label">Trigger EDD Assessment</span></div>
+          <div class="n agent" data-id="e-escalate"><span class="label">Escalate Case for Enhanced DD Initial</span></div>
+          <div class="n agent" data-id="e-pep-check"><span class="label">Conduct PEP Check</span></div>
+          <div class="n agent" data-id="e-sanctions"><span class="label">Run Sanctions & Adverse Media</span></div>
+          <div class="n agent" data-id="e-notify"><span class="label">Notify Human Processor</span></div>
+        </div>
+      </div>
+
+      <!-- LANE 4: Account Opening -->
+      <div class="lane" style="min-height:150px">
+        <div class="lane-label">Account Opening</div>
+        <div class="lane-body" style="flex-direction:column;gap:8px;padding-top:10px;padding-bottom:10px">
+          <div class="lane-row">
+            <div class="n" data-id="a-request"><span class="label">Request Account</span></div>
+            <div class="n" data-id="a-add-app"><span class="label">Add Account Application</span></div>
+            <div class="n" data-id="a-assign-num"><span class="label">Assign Account Number</span></div>
+            <div class="n" data-id="a-collect-info"><span class="label">Collect Public Customer Info</span></div>
+            <div class="n" data-id="a-gen-doclist"><span class="label">Generate Document List</span></div>
+            <div class="n" data-id="a-send-doclist"><span class="label">Send Documentlist To Client</span></div>
+            <div class="n" data-id="a-digital-sub"><span class="label">Digital Submission Of Documentation</span></div>
+            <div class="n" data-id="a-review-doc"><span class="label">Review Documentation</span></div>
+            <div class="n" data-id="a-review-pass"><span class="label">Review Passed</span></div>
+          </div>
+          <div class="lane-row">
+            <div class="n" data-id="a-checker-review"><span class="label">Checker Review Documentation</span></div>
+            <div class="n" data-id="a-checker-pass"><span class="label">Checker Review Passed</span></div>
+            <div class="n" data-id="a-notif-sign"><span class="label">Customer Notification & Agreement Signing</span></div>
+            <div class="n" data-id="a-open"><span class="label">Open Account</span></div>
+            <div class="n" data-id="a-entitle"><span class="label">Account Entitlement</span></div>
+            <div class="n" data-id="a-activate"><span class="label">Account Activation</span></div>
+            <div class="n" data-id="a-update-risk"><span class="label">Update Customer Risk Profile</span></div>
+            <div class="n" data-id="a-sar-trigger"><span class="label">Transaction Alert Triggers SAR</span></div>
+            <div class="evt-end" data-id="a-end"></div>
+          </div>
+        </div>
+      </div>
+
+      <svg id="connSvg">
+        <defs>
+          <marker id="ah" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto" markerUnits="userSpaceOnUse">
+            <polygon points="0 0,7 2.5,0 5" class="arrow-head"/>
+          </marker>
+          <marker id="ah-agent" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto" markerUnits="userSpaceOnUse">
+            <polygon points="0 0,7 2.5,0 5" class="agent-head"/>
+          </marker>
+        </defs>
+      </svg>
+
+    </div>
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="rp-section">
+    <div class="rp-section-body" style="padding-top:6px">
+      <div class="rp-field"><div class="rp-field-label">Additional authors ⓘ</div><input class="rp-input" placeholder="..."/></div>
+      <div class="rp-field"><div class="rp-field-label">Reviewer ⓘ</div><input class="rp-input" placeholder="..."/></div>
+      <div class="rp-reviewer"><div class="avatar">C</div><a class="rp-link" href="#">Celonis, Celosphere</a><span style="font-size:10px;color:var(--green)">●</span></div>
+      <div class="rp-field" style="margin-top:6px"><div class="rp-field-label">Process management positions ⓘ</div><input class="rp-input" placeholder="..."/></div>
+    </div>
+  </div>
+  <div class="rp-section">
+    <div class="rp-section-header"><span class="rp-section-title">Data Objects</span><span class="rp-section-caret">▸</span></div>
+    <div class="rp-section-body">
+      <div class="rp-obj"><span class="dot" style="background:#4dabf7"></span>Account Opening</div>
+      <div class="rp-obj"><span class="dot" style="background:#69db7c"></span>Customer</div>
+      <div class="rp-obj"><span class="dot" style="background:#ffa94d"></span>Initial KYC</div>
+      <div class="rp-obj"><span class="dot" style="background:var(--agent-accent)"></span>EDD AI Agent</div>
+    </div>
+  </div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Touch Points</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Goals</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">KPIs</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Measures</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Milestones</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Predecessor/successor process</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Pools</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Accountable Organization</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Locations</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Inputs/Outputs</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section">
+    <div class="rp-section-header"><span class="rp-section-title">Applications</span><span class="rp-section-caret">▸</span></div>
+    <div class="rp-section-body">
+      <div style="font-size:11px">→ <a class="rp-link" href="#">Core Banking System (v3.2, Valid)</a></div>
+      <div class="rp-hint">⚠ In application swimlanes multiple maintained primary applications can not be evaluated.</div>
+    </div>
+  </div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Policies</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section">
+    <div class="rp-section-header"><span class="rp-section-title">Risks</span><span class="rp-section-caret">▸</span></div>
+    <div class="rp-section-body"><div style="font-size:11px">→ <a class="rp-link" href="#">EDD documentation delays (0.1, In process)</a></div></div>
+  </div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Opportunities</span><span class="rp-section-caret">▾</span></div></div>
+  <div class="rp-section"><div class="rp-section-header"><span class="rp-section-title">Controls</span><span class="rp-section-caret">▾</span></div></div>
+</div>
+
+</div>
+
+<div class="bottom-bar">
+  <button class="zoom-btn">↓</button><button class="zoom-btn">⊞</button><button class="zoom-btn">−</button>
+  <span class="zoom-label">100% ▾</span><button class="zoom-btn">+</button><button class="zoom-btn">🔍</button>
+</div>
+
+<script>
+const pool = document.getElementById('pool');
+const svg = document.getElementById('connSvg');
+
+function box(id) {
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (!el) return null;
+  const pr = pool.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  return {
+    l: r.left-pr.left, r: r.right-pr.left,
+    t: r.top-pr.top, b: r.bottom-pr.top,
+    cx: r.left-pr.left+r.width/2,
+    cy: r.top-pr.top+r.height/2
+  };
+}
+
+function arrow(pts, opts={}) {
+  const pl = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+  pl.setAttribute('points', pts.map(p=>p[0]+','+p[1]).join(' '));
+  pl.setAttribute('marker-end', opts.agent ? 'url(#ah-agent)' : 'url(#ah)');
+  if (opts.dashed) pl.classList.add('dashed');
+  if (opts.agent) pl.classList.add('agent-conn');
+  svg.appendChild(pl);
+}
+
+function draw() {
+  const defs = svg.querySelector('defs');
+  svg.innerHTML = ''; svg.appendChild(defs);
+
+  // ── Horizontal chains ──
+  const chains = [
+    {ids:['c-start','c-register-lead','c-app-submission','c-verify-identity','c-accept','c-profile-updated','c-one-year']},
+    {ids:['k-create-case','k-assign-case','k-due-diligence','k-doc-check','k-risk-assess','k-interview','k-qa-review','k-close-case']},
+    {ids:['e-trigger','e-escalate','e-pep-check','e-sanctions','e-notify'], agent:true},
+    {ids:['a-request','a-add-app','a-assign-num','a-collect-info','a-gen-doclist','a-send-doclist','a-digital-sub','a-review-doc','a-review-pass']},
+    {ids:['a-checker-review','a-checker-pass','a-notif-sign','a-open','a-entitle','a-activate','a-update-risk','a-sar-trigger','a-end']},
+  ];
+  chains.forEach(ch => {
+    for (let i=0;i<ch.ids.length-1;i++) {
+      const a=box(ch.ids[i]),b=box(ch.ids[i+1]);
+      if(!a||!b)continue;
+      arrow([[a.r+1,a.cy],[b.l-2,b.cy]],{agent:ch.agent});
+    }
+  });
+
+  // Wrap AO row1→row2
+  const rp=box('a-review-pass'),cr2=box('a-checker-review');
+  if(rp&&cr2){const wx=rp.r+16;arrow([[rp.r+1,rp.cy],[wx,rp.cy],[wx,cr2.cy],[cr2.l-2,cr2.cy]])}
+
+  // ══ CROSS-LANE ══
+
+  // Customer App Submission → down to Trigger EDD Assessment
+  const cApp=box('c-app-submission'),eTrig=box('e-trigger');
+  if(cApp&&eTrig){arrow([[cApp.cx,cApp.b+1],[cApp.cx,eTrig.t-8],[eTrig.cx,eTrig.t-8],[eTrig.cx,eTrig.t-2]],{agent:true})}
+
+  // Accept Customer → Create Initial KYC Case
+  const cAcc=box('c-accept'),kCr=box('k-create-case');
+  if(cAcc&&kCr){arrow([[cAcc.cx,cAcc.b+1],[cAcc.cx,kCr.t-8],[kCr.cx,kCr.t-8],[kCr.cx,kCr.t-2]])}
+
+  // Verify Identity → Assign KYC Case (dashed)
+  const cVer=box('c-verify-identity'),kAs=box('k-assign-case');
+  if(cVer&&kAs){arrow([[cVer.cx,cVer.b+1],[cVer.cx,kAs.t-8],[kAs.cx,kAs.t-8],[kAs.cx,kAs.t-2]],{dashed:true})}
+
+  // Due Diligence → Escalate (KYC down to EDD AI Agent)
+  const kDD=box('k-due-diligence'),eEsc=box('e-escalate');
+  if(kDD&&eEsc){arrow([[kDD.cx,kDD.b+1],[kDD.cx,eEsc.t-8],[eEsc.cx,eEsc.t-8],[eEsc.cx,eEsc.t-2]],{agent:true})}
+
+  // Notify Human Processor → up to Conduct Customer Interview
+  const eNot=box('e-notify'),kInt=box('k-interview');
+  if(eNot&&kInt){arrow([[eNot.cx,eNot.t-1],[eNot.cx,kInt.b+8],[kInt.cx,kInt.b+8],[kInt.cx,kInt.b+2]],{agent:true})}
+
+  // Close KYC → Request Account
+  const kCl=box('k-close-case'),aRq=box('a-request');
+  if(kCl&&aRq){arrow([[kCl.cx,kCl.b+1],[kCl.cx,aRq.t-8],[aRq.cx,aRq.t-8],[aRq.cx,aRq.t-2]])}
+
+  // Account Activation → Customer Profile Updated (dashed)
+  const aAc=box('a-activate'),cPr=box('c-profile-updated');
+  if(aAc&&cPr){arrow([[aAc.cx,aAc.t-1],[aAc.cx,cPr.b+12],[cPr.cx,cPr.b+12],[cPr.cx,cPr.b+2]],{dashed:true})}
+
+  // Update Risk → Customer For One Year (dashed)
+  const aUR=box('a-update-risk'),cOY=box('c-one-year');
+  if(aUR&&cOY){arrow([[aUR.cx,aUR.t-1],[aUR.cx,cOY.b+16],[cOY.cx,cOY.b+16],[cOY.cx,cOY.b+2]],{dashed:true})}
+
+  // Send Doclist → Customer (dashed)
+  const aSd=box('a-send-doclist');
+  if(aSd&&cApp){arrow([[aSd.cx+10,aSd.t-1],[aSd.cx+10,cApp.b+16],[cApp.cx+15,cApp.b+16],[cApp.cx+15,cApp.b+2]],{dashed:true})}
+}
+
+window.addEventListener('load',()=>setTimeout(draw,150));
+window.addEventListener('resize',draw);
+</script>
+
+</body>
+</html>
